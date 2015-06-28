@@ -1,0 +1,6 @@
+{
+  "INVALID_NOTIFICATION" : {
+    "errorCode": 400,
+    "message": "Invalid notification request"
+  }
+}
