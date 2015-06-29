@@ -15,6 +15,10 @@
     var PushManager = require('./lib/pushManager');
     var pushManager = new PushManager();
 
+    var RedisManager = require('./lib/redisManager');
+    var redisMananger = new RedisManager();
+
+
     rabbitmq.consume('notification', {}, function (err, job, ack) {
         if(err) { return process.exit(1); }
         var page = job.page;
@@ -30,7 +34,11 @@
             deviceBuffers[type] = new DeviceBuffer();
             deviceBuffers[type].addFlushListener(function (devices){
                 // Send Push Notification
-                if(devices.length > 0) { pushManager.notify(type, _deDuplication(pushId, devices), payload); }
+                if(devices.length > 0) {
+                    _deDuplication(pushId, devices, function (err, deviceSet) {
+                        pushManager.notify(type, deviceSet, payload);
+                    });
+                }
             });
             deviceBuffers[type].addEndListener(function (){
                 endBufferTypes.push(type);
@@ -60,16 +68,22 @@
         console.log('[%d] uncaughtException : ', process.pid, error.stack);
     });
     
-    function _deDuplication(pushId, devices){
+    function _deDuplication(pushId, devices, callback){
         // TODO de-duplication
+        var multi = redisMananger.write('push').multi();
+        var redisKey = 'push:status:hash:'+pushId;
 
-        //var multi = redis.multi();
-        //for( var i = 0; i < devices.length; i++ ) {
-        //    multi.sadd(, devices[i]);
-        //}
+        for( var i = 0; i < devices.length; i++ ) {
+            multi.sadd(redisKey, devices[i]);
+        }
 
+        multi.exec(function (err, result) {
+            devices = devices.filter(function (v, i) {
+                return result[i] === 1;
+            });
 
-        return devices;
+            callback(err, devices);
+        });
     };
 
 })();
