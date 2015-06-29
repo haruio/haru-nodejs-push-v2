@@ -28,6 +28,7 @@
         var endBufferTypes = [];
         var payload = job.notification;
         var pushId = job.pushId;
+        var countOfNotify = 0;
 
         // init device buffer
         pushTypes.forEach(function (type) {
@@ -36,6 +37,7 @@
                 // Send Push Notification
                 if(devices.length > 0) {
                     _deDuplication(pushId, devices, function (err, deviceSet) {
+                        countOfNotify = deviceSet.length;
                         pushManager.notify(type, deviceSet, payload);
                     });
                 }
@@ -45,6 +47,11 @@
 
                 // end
                 if(endBufferTypes.length == Object.keys(deviceBuffers).length) {
+                    if(job.isLast && countOfNotify === job.itemPerPage) {
+                        // Send next page
+                        job.page++;
+                        rabbitmq.publish('notification',JSON.stringify(job), {});
+                    }
                     ack();
                 }
             });
