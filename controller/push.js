@@ -6,10 +6,11 @@ var async = require('async');
 var ErrorCode = require('../error/errorCode');
 var PushAssociations = require('../lib/PushAssociations');
 var config = require('config');
+var isValid = require('../lib/jsonValidator').isValid;
+var RequestPush = require('../schema').request.Push;
 
 
 exports.send = function(req, res, next) {
-    // valid check
     var notification = req.body;
 
     async.series([
@@ -27,8 +28,12 @@ exports.send = function(req, res, next) {
 };
 
 function _validCheck(notification, callback){
-    //return callback(ErrorCode.INVALID_NOTIFIATION);
-    return callback(null);
+    var error = null;
+    if(!isValid(notification, RequestPush)) {
+        error = ErrorCode.INVALID_NOTIFICATION;
+    }
+
+    return callback(error);
 };
 
 function _publishNotificationJob(notification, callback){
