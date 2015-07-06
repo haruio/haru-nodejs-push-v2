@@ -61,7 +61,7 @@
             devices.forEach(function (device) {
                 var buffer = deviceBuffers[device.pushType];
                 if(!buffer) { return; }
-                buffer.add(device.uuid);
+                buffer.add(device.deviceToken);
             });
 
             // End Buffers

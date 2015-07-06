@@ -18,14 +18,14 @@ module.exports = (function() {
     inherits(GcmProvider, EventEmitter);
 
     GcmProvider.prototype._initPushConnection = function() {
-        this.connection = new gcm.Sender(this.settings.serverApiKey);
+        this.connection = new gcm.Sender(this.settings.apiKey);
     };
 
     GcmProvider.prototype.pushNotification = function(devices, payload) {
         var self = this;
         var message = _buildMessage(payload);
 
-        self.connection.send( message, devices, 3, function(err, result){
+        self.connection.send(message, devices, 4, function(err, result){
             if (!err && result && result.failure) {
                 var devicesGoneRegistrationIds = [], errors = [], code;
                 result.results.forEach(function(value, index) {
