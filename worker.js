@@ -73,6 +73,7 @@
 
     process.on('uncaughtException', function(error) {
         console.log('[%d] uncaughtException : ', process.pid, error.stack);
+        process.exit(1);
     });
     
     function _deDuplication(pushId, devices, callback){

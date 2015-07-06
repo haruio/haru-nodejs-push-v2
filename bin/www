@@ -7,3 +7,8 @@ app.set('port', process.env.PORT || 3000);
 var server = app.listen(app.get('port'), function() {
   debug('Express server listening on port ' + server.address().port);
 });
+
+process.on('uncaughtException', function(error) {
+  console.log('[%d] uncaughtException : ', process.pid, error.stack);
+  process.exit(1);
+});
