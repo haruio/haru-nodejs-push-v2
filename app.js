@@ -1,16 +1,23 @@
 var express = require('express');
-var path = require('path');
-var favicon = require('static-favicon');
 var bodyParser = require('body-parser');
 
-var push = require('./routes/push');
+/** v1 **/
+var deviceV1 = require('./routes/v1/device');
+var pushesV1 = require('./routes/v1/pushes');
+
+/** v2 **/
+var pushV2 = require('./routes/v2/push');
 
 var app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 
-app.use('/v2/push', push);
+app.use('/v1/device', deviceV1);
+app.use('/v1/pushes', pushesV1);
+
+app.use('/v2/push', pushV2);
+
 
 app.use(function onError(err, req, res, next) {
     res.status(err.errCode ? err.errCode : 400).json({
