@@ -7,8 +7,18 @@ exports.Push = {
         required: false,
         type: 'object'
     },
+    timezone: {
+        required: true,
+        validate: function (timezone) {
+            return true;
+        }
+    },
     pushTime: {
-        required: false
+        required: false,
+        type: 'string',
+        validate: function (pushTime) {
+            return true;
+        }
     },
     data: {
         required: true,
