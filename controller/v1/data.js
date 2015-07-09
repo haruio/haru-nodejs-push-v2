@@ -25,3 +25,14 @@ exports.deviceCnt = function(req, res) {
         res.json({count: count});
     });
 };
+
+exports.reservation = function(req, res) {
+    var skip = req.query.skip | 0;
+    var limit = req.query.limit | 10;
+
+    pushAssociations.getTotalScheduledPushes(req.query.q, skip, limit, function(err, result) {
+        res.json(result);
+    });
+
+};
+
