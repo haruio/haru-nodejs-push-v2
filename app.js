@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
 /** v1 **/
 var deviceV1 = require('./routes/v1/device');
@@ -10,12 +11,16 @@ var pushV2 = require('./routes/v2/push');
 
 var app = express();
 
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
+app.use(cors());
 
 app.use('/v1/device', deviceV1);
 app.use('/v1/pushes', pushesV1);
 
+app.use('/v2/device', deviceV1);
+app.use('/v2/pushes', pushesV1);
 app.use('/v2/push', pushV2);
 
 
