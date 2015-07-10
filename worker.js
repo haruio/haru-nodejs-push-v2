@@ -48,9 +48,15 @@
                 // end
                 if(endBufferTypes.length == Object.keys(deviceBuffers).length) {
                     if(job.isLast && countOfNotify === job.itemPerPage) {
-                        // Send next page
+                        // 마지막페이지가 마지막 페이지가 아니네..
                         job.page++;
                         rabbitmq.publish('notification',JSON.stringify(job), {});
+                    } else {
+                        // 진짜 마지막 페이지
+                        PushAssociations.finishSendPush(job.pushId, function () {
+                            console.log(arguments);
+
+                        });
                     }
                     ack();
                 }
