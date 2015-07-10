@@ -33,6 +33,21 @@ exports.send = function(req, res, next) {
     });
 };
 
+exports.cancelReserveNotification = function(req, res, next) {
+    var id = req.params.id;
+
+    PushAssociations.cancelScheduledPush(id, function (err, result) {
+        if(err) { return next(err); }
+        if(!result) { return next(new Error("INVALID_PUSH_ID")); }
+
+        res.json({canceled: id});
+    });
+};
+
+exports.updateReserveNotification = function(req, res, next) {
+    var id = req.params.id;
+};
+
 function _validCheck(notification, callback){
     var error = null;
     if(!isValid(notification, RequestPush)) {
