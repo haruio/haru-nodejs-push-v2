@@ -73,6 +73,18 @@ exports.updateReserveNotification = function(req, res, next) {
     });
 };
 
+exports.sendImmediately = function(req, res, next) {
+    var id = req.params.id;
+
+    PushAssociations.updateSchedulePush(id, { pushTime: new Date().getTime() }, function (err, result) {
+        if(err) { return next(err); }
+        if(!result) { return next(new Error("INVALID_PUSH_ID")); }
+
+        res.json({published: id});
+    });
+};
+
+
 function _validCheck(notification, callback){
     var error = null;
     if(!isValid(notification, RequestPush)) {
