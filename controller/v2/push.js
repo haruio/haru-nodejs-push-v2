@@ -46,6 +46,31 @@ exports.cancelReserveNotification = function(req, res, next) {
 
 exports.updateReserveNotification = function(req, res, next) {
     var id = req.params.id;
+    var notification = req.body;
+
+    if(notification._id){
+        delete notification._id;
+    }
+
+    async.series([
+        function validCheck(callback){
+            _validCheck(notification, callback);
+        },
+        function updateSchedulePush(callback) {
+            notification.pushTime = new Date(moment_timezone.tz(notification.pushTime, notification.timezone).format()).valueOf();
+            notification.status = 'approved';
+            PushAssociations.updateSchedulePush(id, notification, callback);
+        }
+    ], function done(error, results) {
+        if(error) { return next(error); }
+
+        res.json({
+            _id: results[1].pushId,
+            count: results[1].count,
+            pushTime: results[1].pushTime,
+            timezone: results[1].timezone
+        });
+    });
 };
 
 function _validCheck(notification, callback){
