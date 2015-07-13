@@ -23,6 +23,6 @@
             });
         }
     ], function done(error, results) {
-
+        process.exit(1);
     });
 })();
