@@ -16,6 +16,10 @@ exports.pushes = function(req, res) {
     var limit = req.query.limit | 10;
 
     pushAssociations.getPushes(req.query, skip, limit, function(err, result) {
+        result.forEach(function (notification) {
+            if(notification.condition) { notification.condition = JSON.parse(notification.condition); }
+        });
+
         res.json(result);
     });
 };
