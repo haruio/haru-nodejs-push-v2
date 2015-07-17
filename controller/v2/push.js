@@ -96,6 +96,9 @@ function _validCheck(notification, callback){
 
 function _reserveNotificationJob(notification, callback){
     notification.pushTime = new Date(moment_timezone.tz(notification.pushTime, notification.timezone).format()).valueOf();
+    if(notification.condition) {
+        notification.condition = JSON.stringify(notification.condition);
+    }
 
     PushAssociations.saveScheduledPush(notification, callback);
 };
