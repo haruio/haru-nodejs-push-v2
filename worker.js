@@ -24,7 +24,7 @@
         var page = job.page;
         var itemPerPage = job.itemPerPage;
         var deviceBuffers = {};
-        var condition = job.condition;
+        var condition = job.notification.condition || {};
         var endBufferTypes = [];
         var payload = job.notification;
         var pushId = job.pushId;
@@ -53,10 +53,7 @@
                         rabbitmq.publish('notification',JSON.stringify(job), {});
                     } else {
                         // 진짜 마지막 페이지
-                        PushAssociations.finishSendPush(job.pushId, function () {
-                            console.log(arguments);
-
-                        });
+                        PushAssociations.finishSendPush(job.pushId);
                     }
                     ack();
                 }
