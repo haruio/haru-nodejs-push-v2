@@ -15,8 +15,9 @@
         function publishNotification(jobs, callback){
             async.times(jobs.length, function(n, next) {
                 var notification = jobs[n];
-                pushPublisher.publish(notification, function () {
-                    pushAssociations.changeScheduledPushStatus(notification._id, 'published', next);
+                pushPublisher.publish(notification, function (err, publishedPush) {
+                    //pushAssociations.changeScheduledPushStatus(notification._id, 'published', next);
+                    pushAssociations.updateSchedulePush(notification._id, {status: 'published', pushId: publishedPush.pushId}, next);
                 });
             },function done(error, results) {
                 callback();
