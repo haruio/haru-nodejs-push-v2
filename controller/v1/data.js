@@ -16,18 +16,6 @@ exports.pushes = function(req, res) {
     var limit = req.query.limit | 10;
 
     pushAssociations.getPushes(req.query, skip, limit, function(err, result) {
-        result.forEach(function (notification) {
-            if(notification.condition) {
-                try {
-                    notification.condition = JSON.parse(notification.condition);
-                }catch(e) {
-                    notification.condition = {};
-                }
-            } else {
-                notification.condition = {};
-            }
-        });
-
         res.json(result);
     });
 };
@@ -43,18 +31,6 @@ exports.reservation = function(req, res) {
     var limit = req.query.limit | 10;
 
     pushAssociations.getTotalScheduledPushes(req.query, skip, limit, function(err, result) {
-        result.forEach(function (notification) {
-            if(notification.condition) {
-                try {
-                    notification.condition = JSON.parse(notification.condition);
-                }catch(e) {
-                    notification.condition = {};
-                }
-            } else {
-                notification.condition = {};
-            }
-        });
-
         res.json(result);
     });
 

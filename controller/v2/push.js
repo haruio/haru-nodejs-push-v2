@@ -47,9 +47,6 @@ exports.cancelReserveNotification = function(req, res, next) {
 exports.updateReserveNotification = function(req, res, next) {
     var id = req.params.id;
     var notification = req.body;
-    if(notification.condition) {
-        notification.condition = JSON.stringify(notification.condition);
-    }
 
     if(notification._id){
         delete notification._id;
@@ -96,9 +93,6 @@ function _validCheck(notification, callback){
 
 function _reserveNotificationJob(notification, callback){
     notification.pushTime = new Date(moment_timezone.tz(notification.pushTime, notification.timezone).format()).valueOf();
-    if(notification.condition) {
-        notification.condition = JSON.stringify(notification.condition);
-    }
 
     PushAssociations.saveScheduledPush(notification, callback);
 };
