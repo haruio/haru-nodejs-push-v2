@@ -94,5 +94,15 @@ function _validCheck(notification, callback){
 function _reserveNotificationJob(notification, callback){
     notification.pushTime = new Date(moment_timezone.tz(notification.pushTime, notification.timezone).format()).valueOf();
 
+    if(notification.condition.user) {
+        notification.type = 'user';
+    } else if(notification.condition.channel) {
+        notification.type = 'channel';
+    } else if(notification.condition && Object.keys(notification.condition).length === 0) {
+        notification.type = 'all';
+    } else {
+        notification.type = 'etc';
+    }
+
     PushAssociations.saveScheduledPush(notification, callback);
 };
