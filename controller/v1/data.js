@@ -12,8 +12,8 @@ exports.pushCnt = function(req, res) {
 };
 
 exports.pushes = function(req, res) {
-    var skip = req.query.skip | 0;
-    var limit = req.query.limit | 10;
+    var skip = req.query.skip || 0;
+    var limit = req.query.limit || 10;
 
     pushAssociations.getPushes(req.query, skip, limit, function(err, result) {
         res.json(result);
@@ -27,12 +27,11 @@ exports.deviceCnt = function(req, res) {
 };
 
 exports.reservation = function(req, res) {
-    var skip = req.query.skip | 0;
-    var limit = req.query.limit | 10;
+    var skip = req.query.skip || 0;
+    var limit = req.query.limit || 10;
 
     pushAssociations.getTotalScheduledPushes(req.query, skip, limit, function(err, result) {
         res.json(result);
     });
-
 };
 
