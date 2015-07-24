@@ -9,7 +9,7 @@ var pushesV1 = require('./routes/v1/pushes');
 /** v2 **/
 var pushV2 = require('./routes/v2/push');
 var timezone = require('./routes/v2/timezone');
-//var mail = require('./routes/v2/mail');
+var mail = require('./routes/v2/mail');
 
 
 var app = express();
@@ -26,7 +26,7 @@ app.use('/v2/device', deviceV1);
 app.use('/v2/pushes', pushesV1);
 app.use('/v2/push', pushV2);
 app.use('/v2/timezone', timezone);
-//app.use('/v2/mail', mail);
+app.use('/v2/email', mail);
 
 
 

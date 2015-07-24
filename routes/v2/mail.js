@@ -3,6 +3,7 @@
  */
 var express = require('express');
 var router = express.Router();
+var mail = require('../../controller/v2/mail');
 
 
 router.post('/signup', mail.signup);
