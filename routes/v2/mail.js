@@ -11,5 +11,8 @@ router.post('/signup', mail.signup);
 router.post('/withdraw', mail.withdraw);
 router.post('/resetpassword', mail.resetpassword);
 
+router.get('/', mail.read);
+router.delete('/:id', mail.cancel);
+router.put('/:id', mail.update);
 
 module.exports = router;
