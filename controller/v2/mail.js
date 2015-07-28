@@ -2,7 +2,7 @@
  * Created by syntaxfish on 15. 7. 23..
  */
 var mailPublisher = require('../../lib/mailPublisher');
-var mailAssociations = require('../../lib/mailAssociations');
+var mailAssociations = require('../../lib/MailAssociations');
 
 var config = require('config');
 
