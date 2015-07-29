@@ -6,6 +6,13 @@ var mailAssociations = require('../../lib/MailAssociations');
 
 var config = require('config');
 
+var moment = require('moment-timezone');
+var dateProperties = [
+    'publishTime',
+    'createdAt',
+    'updatedAt'
+];
+
 exports.signup = function(req, res) {
     var body = req.body;
     if(!body.to) { return res.json({message: "fail"}); }
@@ -85,7 +92,7 @@ exports.read = function (req, res){
     var limit = req.query.limit || 10;
 
     mailAssociations.getMail(req.query, skip, limit, function(err, result) {
-        res.json(result);
+        res.json(_convertTime(result));
     });
 };
 
@@ -111,4 +118,20 @@ exports.update = function(req, res, next) {
             mailId: id
         });
     });
+};
+
+function _convertTime(input) {
+    input = Array.isArray(input) ? input : [input];
+
+    input.forEach(function (arg) {
+        if(!arg.timezone) { return arg; }
+        for(var i = 0; i < dateProperties.length; i++) {
+            if(arg[dateProperties[i]]) {
+                arg[dateProperties[i]] = moment(new Date(arg[dateProperties[i]])).tz(arg.timezone).format()
+
+            }
+        }
+    });
+
+    return input;
 };
