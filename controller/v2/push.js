@@ -36,12 +36,7 @@ exports.getPush = function(req, res, next) {
     notificationAssociations.getPush(id, function (err, notification) {
         if(err) { return next(err); }
         if(!notification) { return next(new Error("INVALID_PUSH_ID")); }
-
-        notification.publishTime = _convertTime(notification.timezone, notification.publishTime);
-        notification.createdAt = _convertTime(notification.timezone, notification.createdAt);
-        notification.updatedAt = _convertTime(notification.timezone, notification.updatedAt);
-
-
+        _convertNotificationTimes(notification);
         res.json(notification);
     });
 };
@@ -53,6 +48,11 @@ exports.pushList = function(req, res, next) {
 
     notificationAssociations.findPush(req.query, skip, limit, function (err, results) {
         if(err) { return next(err); }
+
+        results.forEach(function (notification) {
+            _convertNotificationTimes(notification);
+        });
+
         res.json(results);
     });
 };
@@ -130,7 +130,22 @@ function _reserveNotificationJob(notification, callback){
 };
 
 
+function _convertNotificationTimes(notification) {
+    notification.createdAt = _convertTime(notification.timezone, notification.createdAt);
+    notification.updatedAt = _convertTime(notification.timezone, notification.updatedAt);
+    if(notification.publishTime) {
+        notification.publishTime = _convertTime(notification.timezone, notification.publishTime);
+    }
+    if(notification.startedAt) {
+        notification.startedAt = _convertTime(notification.timezone, notification.startedAt);
+    }
+    if(notification.finishedAt) {
+        notification.finishedAt = _convertTime(notification.timezone, notification.finishedAt);
+    }
+
+    return notification;
+}
 
 function _convertTime(timezone, time){
     return moment(new Date(time)).tz(timezone).format();
-};
+}
