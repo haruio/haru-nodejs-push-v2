@@ -1,12 +1,10 @@
 "use strict";
 
-var async = require('async');
 var ErrorCode = require('../../error/errorCode');
 var PushAssociations = require('../../lib/PushAssociations');
 var isValid = require('../../lib/jsonValidator').isValid;
 var RequestPush = require('../../schema/index').request.Push;
 var moment = require('moment-timezone');
-var pushPublisher = require('../../lib/pushPublisher');
 
 var notificationAssociations = require('../../lib/notificationAssociations');
 var notificationPublisher = require('../../lib/notificationPublisher');
@@ -44,7 +42,6 @@ exports.getPush = function(req, res, next) {
 exports.pushList = function(req, res, next) {
     var skip = req.query.skip || 0;
     var limit = req.query.limit || 10;
-
 
     notificationAssociations.findPush(req.query, skip, limit, function (err, results) {
         if(err) { return next(err); }
