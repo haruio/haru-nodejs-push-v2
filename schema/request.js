@@ -3,41 +3,18 @@
  */
 
 exports.Push = {
-    condition: {
-        required: false,
-        type: 'object'
-    },
-    timezone: {
-        required: true,
-        validate: function (timezone) {
-            return true;
-        }
-    },
-    pushTime: {
-        required: false,
-        type: 'string',
-        validate: function (pushTime) {
-            return true;
-        }
-    },
-    data: {
-        required: true,
-        type: 'object',
-        properties: {
-            message: {}
-        }
+    // 조건
+    channels:{ required: false },
+    sendType: { required: false },
+    deviceType: { required: false },
+    condition: { required: false },
 
-    },
-    options: {
-        required: true,
-        type: 'object',
-        properties: {
-            alert: {},
-            badge: {},
-            sound: {},
-            title: {},
-            action: {}
-        }
-    }
+    // payload
+    link: { required: false },
+    pushLinkUrl: { required: false },
+    payload: { required: true },
+
+    // 시간
+    timezone: { required: true },
+    publishTime: { required: false }
 };
-

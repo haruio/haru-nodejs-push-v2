@@ -53,9 +53,9 @@ module.exports = (function() {
             delayWhileIdle: options.delayWhileIdle || config.get('Push.GCM.messageOptions.delayWhileIdle')
         });
 
-        Object.keys(payload.data).forEach(function(key) {
-            if( payload.data[key] ) {
-                message.addData(key, payload.data[key]);
+        Object.keys(payload).forEach(function(key) {
+            if( payload[key] ) {
+                message.addData(key, payload[key]);
             }
         });
 

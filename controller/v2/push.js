@@ -5,38 +5,62 @@ var ErrorCode = require('../../error/errorCode');
 var PushAssociations = require('../../lib/PushAssociations');
 var isValid = require('../../lib/jsonValidator').isValid;
 var RequestPush = require('../../schema/index').request.Push;
-var moment_timezone = require('moment-timezone');
+var moment = require('moment-timezone');
 var pushPublisher = require('../../lib/pushPublisher');
+
+var notificationAssociations = require('../../lib/notificationAssociations');
+var notificationPublisher = require('../../lib/notificationPublisher');
 
 exports.send = function(req, res, next) {
     var notification = req.body;
-    async.series([
-        function validCheck(callback){
-            _validCheck(notification, callback);
-        },
-        function publishNotification(callback){
-            if(notification.pushTime) {
-                _reserveNotificationJob(notification, callback);
-            } else {
-                pushPublisher.publish(notification, callback);
-            }
-        }
-    ], function done(error, results) {
+
+    if(notification.publishTime) { notificationPublisher.reservePush(notification, done) }
+    else { notificationPublisher.publishPush(notification, done) }
+
+    function done(error, result){
         if(error) { return next(error); }
 
         res.json({
-            _id: results[1].pushId,
-            count: results[1].count,
-            pushTime: results[1].pushTime,
-            timezone: results[1].timezone
+            pushId: result.pushId,
+            timezone: result.timezone,
+            sendCount: result.sendCount,
+            publishTime: _convertTime(result.timezone, result.publishTime),
+            createdAt: _convertTime(result.timezone, result.createdAt)
         });
+    };
+};
+
+exports.getPush = function(req, res, next) {
+    var id = req.params.id;
+
+    notificationAssociations.getPush(id, function (err, notification) {
+        if(err) { return next(err); }
+        if(!notification) { return next(new Error("INVALID_PUSH_ID")); }
+
+        notification.publishTime = _convertTime(notification.timezone, notification.publishTime);
+        notification.createdAt = _convertTime(notification.timezone, notification.createdAt);
+        notification.updatedAt = _convertTime(notification.timezone, notification.updatedAt);
+
+
+        res.json(notification);
+    });
+};
+
+exports.pushList = function(req, res, next) {
+    var skip = req.query.skip || 0;
+    var limit = req.query.limit || 10;
+
+
+    notificationAssociations.findPush(req.query, skip, limit, function (err, results) {
+        if(err) { return next(err); }
+        res.json(results);
     });
 };
 
 exports.cancelReserveNotification = function(req, res, next) {
     var id = req.params.id;
 
-    PushAssociations.cancelScheduledPush(id, function (err, result) {
+    notificationAssociations.cancelReservedPush(id, function (err, result) {
         if(err) { return next(err); }
         if(!result) { return next(new Error("INVALID_PUSH_ID")); }
 
@@ -52,32 +76,30 @@ exports.updateReserveNotification = function(req, res, next) {
         delete notification._id;
     }
 
-    async.series([
-        function updateSchedulePush(callback) {
-            notification.pushTime = new Date(moment_timezone.tz(notification.pushTime, notification.timezone).format()).valueOf();
-            notification.status = 'approved';
-            PushAssociations.updateSchedulePush(id, notification, callback);
-        }
-    ], function done(error, results) {
-        if(error) { return next(error); }
-
+    notificationAssociations.updateReservedPush(id, notification, function (err, result) {
         res.json({
-            _id: results[0].pushId,
-            count: results[0].count,
-            pushTime: results[0].pushTime,
-            timezone: results[0].timezone
+            pushId: result._id,
+            sendCount: result.sendCount,
+            publishTime: _convertTime(result.timezone, result.publishTime),
+            createdAt: _convertTime(result.timezone, result.createdAt),
+            updatedAt: _convertTime(result.timezone, result.updatedAt)
         });
     });
 };
 
 exports.sendImmediately = function(req, res, next) {
     var id = req.params.id;
-
-    PushAssociations.updateSchedulePush(id, { pushTime: new Date().getTime() }, function (err, result) {
+    notificationAssociations.sendImmediately(id, function (err, result) {
         if(err) { return next(err); }
         if(!result) { return next(new Error("INVALID_PUSH_ID")); }
 
-        res.json({published: id});
+        res.json({
+            pushId: result._id,
+            sendCount: result.sendCount,
+            publishTime: _convertTime(result.timezone, result.publishTime),
+            createdAt: _convertTime(result.timezone, result.createdAt),
+            updatedAt: _convertTime(result.timezone, result.updatedAt)
+        });
     });
 };
 
@@ -105,4 +127,10 @@ function _reserveNotificationJob(notification, callback){
     }
 
     PushAssociations.saveScheduledPush(notification, callback);
+};
+
+
+
+function _convertTime(timezone, time){
+    return moment(new Date(time)).tz(timezone).format();
 };
