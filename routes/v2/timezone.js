@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var push = require('../controller/push');
+var timezone = require('../../controller/v2/timezone');
 
-router.post('/', push.send);
+router.get('/', timezone.get);
 
 module.exports = router;

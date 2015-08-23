@@ -3,11 +3,9 @@
  */
 (function() {
     "use strict";
-
     var config = require('config');
     var pushTypes = config.get('Push.SupportPushTypes');
     var DeviceBuffer = require('./lib/deviceBuffer');
-    var PushAssociations = require('./lib/PushAssociations');
 
     var Rabbitmq = require('./lib/rabbitmq');
     var rabbitmq = new Rabbitmq();
@@ -15,41 +13,48 @@
     var PushManager = require('./lib/pushManager');
     var pushManager = new PushManager();
 
+    var RedisManager = require('./lib/redisManager');
+    var redisMananger = new RedisManager();
+
+    var PUSH_KEY_PREFIX = 'push:status:hash:';
+    var notificationAssociations = require('./lib/notificationAssociations');
+
     rabbitmq.consume('notification', {}, function (err, job, ack) {
         if(err) { return process.exit(1); }
-        var page = job.page;
-        var itemPerPage = job.itemPerPage;
         var deviceBuffers = {};
-        var condition = job.condition;
-        var endBufferTypes = [];
-        var payload = job.notification;
-        var pushId = job.pushId;
+        var endBufferCount = 0;
 
-        // init device buffer
+        if(job.page == 0) { notificationAssociations.startPush(job.pushId); }
+
+        // init buffers
         pushTypes.forEach(function (type) {
             deviceBuffers[type] = new DeviceBuffer();
             deviceBuffers[type].addFlushListener(function (devices){
                 // Send Push Notification
-                if(devices.length > 0) { pushManager.notify(type, _deDuplication(pushId, devices), payload); }
+                if(devices.length > 0) {
+                    _deDuplication(job.pushId, devices, function (err, deviceSet) {
+                        pushManager.notify(type, deviceSet, job.payload);
+                    });
+                }
             });
-            deviceBuffers[type].addEndListener(function (){
-                endBufferTypes.push(type);
 
-                // end
-                if(endBufferTypes.length == Object.keys(deviceBuffers).length) {
+            deviceBuffers[type].addEndListener(function (){
+                if((++endBufferCount) == Object.keys(deviceBuffers).length) {
+                    if(job.isLast) { notificationAssociations.finishPush(job.pushId); }
                     ack();
                 }
             });
         });
 
-        PushAssociations.find(condition, page * itemPerPage, itemPerPage, function(err, devices) {
+        // add to buffer
+        notificationAssociations.findDevices(job.condition, job.page * job.itemPerPage, job.itemPerPage, function(err, devices) {
             devices.forEach(function (device) {
                 var buffer = deviceBuffers[device.pushType];
                 if(!buffer) { return; }
-                buffer.add(device.uuid);
+                buffer.add(device.deviceToken);
             });
 
-            // End Buffers
+            // End Job
             Object.keys(deviceBuffers).forEach(function (type) {
                 deviceBuffers[type].end();
             });
@@ -58,18 +63,24 @@
 
     process.on('uncaughtException', function(error) {
         console.log('[%d] uncaughtException : ', process.pid, error.stack);
+        process.exit(1);
     });
     
-    function _deDuplication(pushId, devices){
+    function _deDuplication(pushId, devices, callback){
         // TODO de-duplication
+        var multi = redisMananger.write('push').multi();
+        var redisKey = PUSH_KEY_PREFIX+pushId;
 
-        //var multi = redis.multi();
-        //for( var i = 0; i < devices.length; i++ ) {
-        //    multi.sadd(, devices[i]);
-        //}
+        for( var i = 0; i < devices.length; i++ ) {
+            multi.sadd(redisKey, devices[i]);
+        }
 
+        multi.exec(function (err, result) {
+            devices = devices.filter(function (v, i) {
+                return result[i] === 1;
+            });
 
-        return devices;
-    };
-
+            callback(err, devices);
+        });
+    }
 })();

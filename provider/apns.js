@@ -81,10 +81,14 @@ module.exports = (function() {
 		message.badge = options.badge;
 		message.sound = options.sound;
 		message.alert = options.alert;
-		message.payload = {};
+		message.payload = {
+			aps: {
+				alert: payload.message.title
+			}
+		};
 
-		Object.keys(payload.data).forEach(function (key) {
-			message.payload[key] = payload.data[key];
+		Object.keys(payload).forEach(function (key) {
+			message.payload[key] = payload[key];
 		});
 
 		return message;

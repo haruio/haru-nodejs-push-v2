@@ -18,14 +18,14 @@ module.exports = (function() {
     inherits(GcmProvider, EventEmitter);
 
     GcmProvider.prototype._initPushConnection = function() {
-        this.connection = new gcm.Sender(this.settings.serverApiKey);
+        this.connection = new gcm.Sender(this.settings.apiKey);
     };
 
     GcmProvider.prototype.pushNotification = function(devices, payload) {
         var self = this;
         var message = _buildMessage(payload);
 
-        self.connection.send( message, devices, 3, function(err, result){
+        self.connection.send(message, devices, 4, function(err, result){
             if (!err && result && result.failure) {
                 var devicesGoneRegistrationIds = [], errors = [], code;
                 result.results.forEach(function(value, index) {
@@ -53,9 +53,9 @@ module.exports = (function() {
             delayWhileIdle: options.delayWhileIdle || config.get('Push.GCM.messageOptions.delayWhileIdle')
         });
 
-        Object.keys(payload.data).forEach(function(key) {
-            if( payload.data[key] ) {
-                message.addData(key, payload.data[key]);
+        Object.keys(payload).forEach(function(key) {
+            if( payload[key] ) {
+                message.addData(key, payload[key]);
             }
         });
 
