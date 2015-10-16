@@ -13,8 +13,8 @@
     var PushManager = require('./lib/pushManager');
     var pushManager = new PushManager();
 
-    var RedisManager = require('./lib/redisManager');
-    var redisMananger = new RedisManager();
+    //var RedisManager = require('./lib/redisManager');
+    //var redisMananger = new RedisManager();
 
     var PUSH_KEY_PREFIX = 'push:status:hash:';
     var notificationAssociations = require('./lib/notificationAssociations_.js');
@@ -48,6 +48,8 @@
 
         // add to buffer
         notificationAssociations.findDevices(job.condition, job.page * job.itemPerPage, job.itemPerPage, function(err, devices) {
+            if(!devices) { return; }
+
             devices.forEach(function (device) {
                 var buffer = deviceBuffers[device.pushType];
                 if(!buffer) { return; }
@@ -68,6 +70,8 @@
     
     function _deDuplication(pushId, devices, callback){
         // TODO de-duplication
+        callback(null, devices);
+        /*
         var multi = redisMananger.write('push').multi();
         var redisKey = PUSH_KEY_PREFIX+pushId;
 
@@ -82,5 +86,6 @@
 
             callback(err, devices);
         });
+        */
     }
 })();
