@@ -29,6 +29,10 @@ module.exports = (function() {
 		this._setupPushConnection(pushOptions);
 		this._setupFeedback(feedbackOptions);
 
+		this.on('error', function (err) {
+			console.log(err);
+		});
+
 		EventEmitter.call(this);
 	};
 
