@@ -7,6 +7,8 @@ module.exports = (function() {
     var EventEmitter = require('events').EventEmitter;
     var inherits = require('util').inherits;
     var config = require('config');
+    var notificationAssociations = require('../lib/notificationAssociations_.js');
+
 
     function GcmProvider(settings) {
         this.settings = settings || config.get('Push.GCM');
@@ -19,6 +21,13 @@ module.exports = (function() {
 
     GcmProvider.prototype._initPushConnection = function() {
         this.connection = new gcm.Sender(this.settings.apiKey);
+        this.on('devicesGone', function (devicesGoneRegistrationIds) {
+            notificationAssociations.removeRegistrationIds(devicesGoneRegistrationIds);
+        });
+
+        this.on('devicesUpdate', function (devicesUpdateRegistrationIds) {
+            notificationAssociations.updateRegistrationIds(devicesUpdateRegistrationIds);
+        });
     };
 
     GcmProvider.prototype.pushNotification = function(devices, payload) {
@@ -28,17 +37,25 @@ module.exports = (function() {
         self.connection.send(message, devices, 4, function(err, result){
             if (!err && result && result.failure) {
                 var devicesGoneRegistrationIds = [], errors = [], code;
+                var devicesUpdateRegistrationIds = [];
+
                 result.results.forEach(function(value, index) {
                     code = value && value.error;
-                    if  (code === 'NotRegistered' || code === 'InvalidRegistration') {
+                    if (!!result.registration_id) {
+                        devicesUpdateRegistrationIds.push({from: result.deviceToken, to: result.registration_id});
+                    } else if(code === 'NotRegistered' || code === 'InvalidRegistration') {
                         devicesGoneRegistrationIds.push(devices[index]);
-                    } else if (code) {
+                    } else if(code) {
                         errors.push('GCM error code: ' + (code || 'Unknown') + ', deviceToken: ' + devices[index]);
                     }
                 });
 
-                if (devicesGoneRegistrationIds.length > 0) {
+                if(devicesGoneRegistrationIds.length > 0) {
                     self.emit('devicesGone', devicesGoneRegistrationIds);
+                }
+
+                if(devicesUpdateRegistrationIds.length >0) {
+                    self.emit('devicesUpdate', devicesUpdateRegistrationIds)
                 }
             }
         });

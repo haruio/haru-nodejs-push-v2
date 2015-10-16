@@ -17,7 +17,7 @@
     var redisMananger = new RedisManager();
 
     var PUSH_KEY_PREFIX = 'push:status:hash:';
-    var notificationAssociations = require('./lib/notificationAssociations');
+    var notificationAssociations = require('./lib/notificationAssociations_.js');
 
     rabbitmq.consume('notification', {}, function (err, job, ack) {
         if(err) { return process.exit(1); }
